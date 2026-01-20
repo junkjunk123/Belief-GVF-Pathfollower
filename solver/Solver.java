@@ -1,4 +1,4 @@
-package gvf;
+package solver;
 
 import manifold.ManifoldPoint;
 import manifold.RiemannianManifold;

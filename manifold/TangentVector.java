@@ -4,5 +4,5 @@ public interface TangentVector<P extends ManifoldPoint<P>, V extends TangentVect
     P basePoint();
     V add(V other);
     V scale(double alpha);
-    RankTwoTensor<V> tensorProduct(V other);
+    Matrix<V> tensorProduct(V other);
 }

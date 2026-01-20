@@ -6,13 +6,16 @@ import java.util.function.Function;
 public class ProductManifold<
         M1P extends ManifoldPoint<M1P>,
         M1V extends TangentVector<M1P, M1V>,
+        M1M extends Matrix<M1V>,
         M2P extends ManifoldPoint<M2P>,
         M2V extends TangentVector<M2P, M2V>,
-        M1 extends RiemannianManifold<M1P, M1V>,
-        M2 extends RiemannianManifold<M2P, M2V>>
+        M2M extends Matrix<M2V>,
+        M1 extends RiemannianManifold<M1P, M1V, M1M>,
+        M2 extends RiemannianManifold<M2P, M2V, M2M>>
         implements RiemannianManifold<
-        ProductManifold<M1P, M1V, M2P, M2V, M1, M2>.ProductPoint,
-        ProductManifold<M1P, M1V, M2P, M2V, M1, M2>.ProductTangentVector> {
+        ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2>.ProductPoint,
+        ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2>.ProductTangentVector,
+        Matrix<ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2>.ProductTangentVector>> {
 
     public final M1 firstManifold;
     public final M2 secondManifold;
@@ -22,13 +25,17 @@ public class ProductManifold<
         this.secondManifold = secondManifold;
     }
 
-    public static <M1P extends ManifoldPoint<M1P>,
-     M1V extends TangentVector<M1P, M1V>,
-     M2P extends ManifoldPoint<M2P>,
-     M2V extends TangentVector<M2P, M2V>,
-     M1 extends RiemannianManifold<M1P, M1V>,
-     M2 extends RiemannianManifold<M2P, M2V>> ProductManifold<M1P, M1V, M2P, M2V, M1, M2> of(M1 firstManifold, M2 secondManifold) {
-        return new ProductManifold<M1P, M1V, M2P, M2V, M1, M2>(firstManifold, secondManifold);
+    public static <
+            M1P extends ManifoldPoint<M1P>,
+            M1V extends TangentVector<M1P, M1V>,
+            M1M extends Matrix<M1V>,
+            M2P extends ManifoldPoint<M2P>,
+            M2V extends TangentVector<M2P, M2V>,
+            M2M extends Matrix<M2V>,
+            M1 extends RiemannianManifold<M1P, M1V, M1M>,
+            M2 extends RiemannianManifold<M2P, M2V, M2M>>
+    ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2> of(M1 firstManifold, M2 secondManifold) {
+        return new ProductManifold<>(firstManifold, secondManifold);
     };
 
     @Override
@@ -38,6 +45,11 @@ public class ProductManifold<
             double secondMetric = secondManifold.metric(point.points.two()).apply(u.vectors.two(), v.vectors.two());
             return firstMetric + secondMetric;
         };
+    }
+
+    @Override
+    public int dim() {
+        return 0;
     }
 
     @Override
@@ -84,8 +96,13 @@ public class ProductManifold<
         return new ProductTangentVector(g1, g2);
     }
 
+    @Override
+    public ProductTangentVector parallelTransport(ProductPoint start, ProductPoint end, ProductTangentVector vector) {
+        return null;
+    }
+
     public class ProductPoint implements ManifoldPoint<ProductPoint> {
-        private final Pair<M1P, M2P> points;
+        public final Pair<M1P, M2P> points;
 
         public ProductPoint(M1P pointOne, M2P pointTwo) {
             this.points = new Pair<>(pointOne, pointTwo);
@@ -98,7 +115,7 @@ public class ProductManifold<
     }
 
     public class ProductTangentVector implements TangentVector<ProductPoint, ProductTangentVector> {
-        private final Pair<M1V, M2V> vectors;
+        public final Pair<M1V, M2V> vectors;
 
         public ProductTangentVector(M1V vectorOne, M2V vectorTwo) {
             this.vectors = new Pair<>(vectorOne, vectorTwo);
@@ -122,5 +139,18 @@ public class ProductManifold<
             M2V newVectorTwo = vectors.two().scale(alpha);
             return new ProductTangentVector(newVectorOne, newVectorTwo);
         }
+
+        @Override
+        public Matrix<ProductTangentVector> tensorProduct(ProductTangentVector other) {
+            return null;
+        }
+    }
+
+    public ProductTangentVector concat(M1V vectorOne, M2V vectorTwo) {
+        return new ProductTangentVector(vectorOne, vectorTwo);
+    }
+
+    public ProductPoint concat(M1P pointOne, M2P pointTwo) {
+        return new ProductPoint(pointOne, pointTwo);
     }
 }
