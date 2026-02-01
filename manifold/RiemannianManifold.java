@@ -3,7 +3,7 @@ package manifold;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface RiemannianManifold<P extends ManifoldPoint<P>, V extends TangentVector<P, V>, M extends Matrix<V>> {
+public interface RiemannianManifold<P extends ManifoldPoint<P>, V extends TangentVector<P, V>, M extends BilinearForm<V>> {
     BiFunction<V, V, Double> metric(P point);
 
     default double innerProduct(V vectorOne, V vectorTwo) {
@@ -24,4 +24,13 @@ public interface RiemannianManifold<P extends ManifoldPoint<P>, V extends Tangen
     V log(P start, P end);
     V gradient(P point, Function<P, Double> function);
     V parallelTransport(P start, P end, V vector);
+
+    default double quadraticForm(V vectorOne, M matrix, V vectorTwo) {
+        V intermediate = matrix.multiply(vectorTwo);
+        return innerProduct(vectorOne, intermediate);
+    }
+
+    default double quadraticForm(V vector, M matrix) {
+        return quadraticForm(vector, matrix, vector);
+    }
 }

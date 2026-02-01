@@ -1,21 +1,23 @@
 package manifold;
 
+import util.Pair;
+
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class ProductManifold<
         M1P extends ManifoldPoint<M1P>,
         M1V extends TangentVector<M1P, M1V>,
-        M1M extends Matrix<M1V>,
+        M1M extends BilinearForm<M1V>,
         M2P extends ManifoldPoint<M2P>,
         M2V extends TangentVector<M2P, M2V>,
-        M2M extends Matrix<M2V>,
+        M2M extends BilinearForm<M2V>,
         M1 extends RiemannianManifold<M1P, M1V, M1M>,
         M2 extends RiemannianManifold<M2P, M2V, M2M>>
         implements RiemannianManifold<
-        ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2>.ProductPoint,
-        ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2>.ProductTangentVector,
-        Matrix<ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2>.ProductTangentVector>> {
+        ProductManifold.ProductPoint<M1P, M2P>,
+        ProductManifold.ProductTangentVector<M1P, M1V, M2P, M2V>,
+        BilinearForm<ProductManifold.ProductTangentVector<M1P, M1V, M2P, M2V>>> {
 
     public final M1 firstManifold;
     public final M2 secondManifold;
@@ -28,10 +30,10 @@ public class ProductManifold<
     public static <
             M1P extends ManifoldPoint<M1P>,
             M1V extends TangentVector<M1P, M1V>,
-            M1M extends Matrix<M1V>,
+            M1M extends BilinearForm<M1V>,
             M2P extends ManifoldPoint<M2P>,
             M2V extends TangentVector<M2P, M2V>,
-            M2M extends Matrix<M2V>,
+            M2M extends BilinearForm<M2V>,
             M1 extends RiemannianManifold<M1P, M1V, M1M>,
             M2 extends RiemannianManifold<M2P, M2V, M2M>>
     ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2> of(M1 firstManifold, M2 secondManifold) {
@@ -39,7 +41,8 @@ public class ProductManifold<
     };
 
     @Override
-    public BiFunction<ProductTangentVector, ProductTangentVector, Double> metric(ProductPoint point) {
+    public BiFunction<ProductTangentVector<M1P, M1V, M2P, M2V>, ProductTangentVector<M1P, M1V, M2P, M2V>, Double>
+        metric(ProductPoint<M1P, M2P> point) {
         return (u, v) -> {;
             double firstMetric = firstManifold.metric(point.points.one()).apply(u.vectors.one(), v.vectors.one());
             double secondMetric = secondManifold.metric(point.points.two()).apply(u.vectors.two(), v.vectors.two());
@@ -49,11 +52,11 @@ public class ProductManifold<
 
     @Override
     public int dim() {
-        return 0;
+        return firstManifold.dim() + secondManifold.dim();
     }
 
     @Override
-    public ProductPoint exp(ProductPoint point, ProductTangentVector vector) {
+    public ProductPoint<M1P, M2P> exp(ProductPoint<M1P, M2P> point, ProductTangentVector<M1P, M1V, M2P, M2V> vector) {
         M1P p1 = firstManifold.exp(
                 point.points.one(),
                 vector.vectors.one()
@@ -64,11 +67,11 @@ public class ProductManifold<
                 vector.vectors.two()
         );
 
-        return new ProductPoint(p1, p2);
+        return new ProductPoint<>(p1, p2);
     }
 
     @Override
-    public ProductTangentVector log(ProductPoint start, ProductPoint end) {
+    public ProductTangentVector<M1P, M1V, M2P, M2V> log(ProductPoint<M1P, M2P> start, ProductPoint<M1P, M2P> end) {
         M1V v1 = firstManifold.log(
                 start.points.one(),
                 end.points.one()
@@ -79,29 +82,43 @@ public class ProductManifold<
                 end.points.two()
         );
 
-        return new ProductTangentVector(v1, v2);
+        return new ProductTangentVector<>(v1, v2);
     }
 
     @Override
-    public ProductTangentVector gradient(ProductPoint point, Function<ProductPoint, Double> function) {
+    public ProductTangentVector<M1P, M1V, M2P, M2V> gradient(ProductPoint<M1P, M2P> point, Function<ProductPoint<M1P, M2P>, Double> function) {
         Function<M1P, Double> f1 =
-                p1 -> function.apply(new ProductPoint(p1, point.points.two()));
+                p1 -> function.apply(new ProductPoint<>(p1, point.points.two()));
 
         Function<M2P, Double> f2 =
-                p2 -> function.apply(new ProductPoint(point.points.one(), p2));
+                p2 -> function.apply(new ProductPoint<>(point.points.one(), p2));
 
         M1V g1 = firstManifold.gradient(point.points.one(), f1);
         M2V g2 = secondManifold.gradient(point.points.two(), f2);
 
-        return new ProductTangentVector(g1, g2);
+        return new ProductTangentVector<>(g1, g2);
     }
 
     @Override
-    public ProductTangentVector parallelTransport(ProductPoint start, ProductPoint end, ProductTangentVector vector) {
-        return null;
+    public ProductTangentVector<M1P, M1V, M2P, M2V> parallelTransport(ProductPoint<M1P, M2P> start,
+                                                                      ProductPoint<M1P, M2P> end,
+                                                                      ProductTangentVector<M1P, M1V, M2P, M2V> vector) {
+        return new ProductTangentVector<>(
+                firstManifold.parallelTransport(
+                        start.points.one(),
+                        end.points.one(),
+                        vector.vectors.one()
+                ),
+                secondManifold.parallelTransport(
+                        start.points.two(),
+                        end.points.two(),
+                        vector.vectors.two()
+                )
+        );
     }
 
-    public class ProductPoint implements ManifoldPoint<ProductPoint> {
+    public static class ProductPoint<M1P extends ManifoldPoint<M1P>, M2P extends ManifoldPoint<M2P>>
+            implements ManifoldPoint<ProductPoint<M1P, M2P>> {
         public final Pair<M1P, M2P> points;
 
         public ProductPoint(M1P pointOne, M2P pointTwo) {
@@ -109,48 +126,52 @@ public class ProductManifold<
         }
 
         @Override
-        public ProductPoint copy() {
-            return new ProductPoint(points.one().copy(), points.two().copy());
+        public ProductPoint<M1P, M2P> copy() {
+            return new ProductPoint<M1P, M2P>(points.one().copy(), points.two().copy());
         }
     }
 
-    public class ProductTangentVector implements TangentVector<ProductPoint, ProductTangentVector> {
+    public static class ProductTangentVector<M1P extends ManifoldPoint<M1P>,
+            M1V extends TangentVector<M1P, M1V>,
+            M2P extends ManifoldPoint<M2P>,
+            M2V extends TangentVector<M2P, M2V>> implements TangentVector<ProductPoint<M1P, M2P>,
+            ProductTangentVector<M1P, M1V, M2P, M2V>> {
         public final Pair<M1V, M2V> vectors;
 
         public ProductTangentVector(M1V vectorOne, M2V vectorTwo) {
             this.vectors = new Pair<>(vectorOne, vectorTwo);
         }
 
-        @Override
-        public ProductPoint basePoint() {
-            return new ProductPoint(vectors.one().basePoint(), vectors.two().basePoint());
+        public ProductTangentVector(Pair<M1V, M2V> vectors) {
+            this.vectors = vectors;
         }
 
         @Override
-        public ProductTangentVector add(ProductTangentVector other) {
+        public ProductPoint<M1P, M2P> basePoint() {
+            return new ProductPoint<>(vectors.one().basePoint(), vectors.two().basePoint());
+        }
+
+        @Override
+        public ProductTangentVector<M1P, M1V, M2P, M2V> add(ProductTangentVector<M1P, M1V, M2P, M2V> other) {
             M1V newVectorOne = vectors.one().add(other.vectors.one());
             M2V newVectorTwo = vectors.two().add(other.vectors.two());
-            return new ProductTangentVector(newVectorOne, newVectorTwo);
+            return new ProductTangentVector<>(newVectorOne, newVectorTwo);
         }
 
         @Override
-        public ProductTangentVector scale(double alpha) {
+        public ProductTangentVector<M1P, M1V, M2P, M2V> scale(double alpha) {
             M1V newVectorOne = vectors.one().scale(alpha);
             M2V newVectorTwo = vectors.two().scale(alpha);
-            return new ProductTangentVector(newVectorOne, newVectorTwo);
+            return new ProductTangentVector<>(newVectorOne, newVectorTwo);
         }
 
         @Override
-        public Matrix<ProductTangentVector> tensorProduct(ProductTangentVector other) {
+        public BilinearForm<ProductTangentVector<M1P, M1V, M2P, M2V>> tensorProduct(ProductTangentVector<M1P, M1V, M2P, M2V> other) {
             return null;
         }
     }
 
-    public ProductTangentVector concat(M1V vectorOne, M2V vectorTwo) {
-        return new ProductTangentVector(vectorOne, vectorTwo);
-    }
-
-    public ProductPoint concat(M1P pointOne, M2P pointTwo) {
-        return new ProductPoint(pointOne, pointTwo);
+    public ProductTangentVector<M1P, M1V, M2P, M2V> concat(M1V vectorOne, M2V vectorTwo) {
+        return new ProductTangentVector<>(vectorOne, vectorTwo);
     }
 }

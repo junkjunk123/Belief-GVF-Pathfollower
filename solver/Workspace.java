@@ -1,11 +1,11 @@
 package solver;
 
 import manifold.ManifoldPoint;
-import manifold.Matrix;
+import manifold.BilinearForm;
 import manifold.RiemannianManifold;
 import manifold.TangentVector;
 
-public abstract class Workspace implements RiemannianManifold<Workspace.Pose, Workspace.Twist, Workspace.MatrixType> {
+public abstract class Workspace implements RiemannianManifold<Workspace.Pose, Workspace.Twist, Workspace.Matrix> {
     public abstract static class Pose implements ManifoldPoint<Pose> {
 
     }
@@ -14,7 +14,7 @@ public abstract class Workspace implements RiemannianManifold<Workspace.Pose, Wo
 
     }
 
-    public abstract static class MatrixType implements Matrix<Twist> {
+    public abstract static class Matrix implements BilinearForm<Twist> {
 
     }
 }
