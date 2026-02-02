@@ -1,4 +1,4 @@
-package statistics;
+package mathematics;
 
 @FunctionalInterface
 public interface ProbabilityDensity<U> {

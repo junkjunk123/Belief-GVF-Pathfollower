@@ -1,28 +1,27 @@
 package belief;
 
 import manifold.*;
-import statistics.ProbabilityDensity;
+import manifold.endomorphism.Endomorphism;
+import mathematics.ProbabilityDensity;
 import util.Pair;
 
-public class Belief<
-        Pose extends ManifoldPoint<Pose>,
+public class Belief<Pose extends ManifoldPoint<Pose>,
         Twist extends TangentVector<Pose, Twist>,
-        Workspace extends RiemannianManifold<Pose, Twist, BilinearForm<Twist>>>
+        Workspace extends RiemannianManifold<Pose, Twist, Endomorphism<Twist>>>
         implements ManifoldPoint<Belief<Pose, Twist, Workspace>>,
         ProbabilityDensity<Pair<Pose, Twist>> {
-
     public final Pose muPose;
     public final Twist muTwist;
-    public final BilinearForm<ProductManifold.ProductTangentVector<Pose, Twist, Pose, Twist>> sigma;
-    public final BilinearForm<ProductManifold.ProductTangentVector<Pose, Twist, Pose, Twist>> sigmaInverse;
-    public final ProductManifold<Pose, Twist, BilinearForm<Twist>, Pose, Twist, BilinearForm<Twist>, Workspace, Workspace> manifold;
+    public final ProductManifold.ProductEndomorphism<Pose, Twist, Pose, Twist> sigma;
+    public final ProductManifold.ProductEndomorphism<Pose, Twist, Pose, Twist> sigmaInverse;
+    public final ProductManifold<Pose, Twist, Endomorphism<Twist>, Pose, Twist, Endomorphism<Twist>, Workspace, Workspace> manifold;
 
     public final Workspace workspace;
 
     public Belief(
             Pose muPose,
             Twist muTwist,
-            BilinearForm<ProductManifold.ProductTangentVector<Pose, Twist, Pose, Twist>> sigma,
+            ProductManifold.ProductEndomorphism<Pose, Twist, Pose, Twist> sigma,
             Workspace workspace
     ) {
         this.muPose = muPose;
@@ -46,27 +45,13 @@ public class Belief<
         Pose pose = state.one();
         Twist twist = state.two();
 
-        /* Pose difference */
         Twist dPose = workspace.log(muPose, pose);
-
-        /* Transport twist to mean pose */
-        Twist twistAtMu =
-                workspace.parallelTransport(pose, muPose, twist);
-
-        /* Velocity difference */
+        Twist twistAtMu = workspace.parallelTransport(pose, muPose, twist);
         Twist dTwist = twistAtMu.add(muTwist.scale(-1));
-
-        /* Concatenate into joint tangent */
         ProductManifold.ProductTangentVector<Pose, Twist, Pose, Twist> z = new ProductManifold.ProductTangentVector<>(dPose, dTwist);
 
         double quad = manifold.innerProduct(sigmaInverse.multiply(z), z);
-
-        double norm =
-                1.0 / Math.sqrt(
-                        Math.pow(2 * Math.PI, 2 * workspace.dim()) *
-                                sigma.determinant()
-                );
-
+        double norm = 1.0 / Math.sqrt(Math.pow(2 * Math.PI, 2 * workspace.dim()) * sigma.determinant());
         return norm * Math.exp(-0.5 * quad);
     }
 

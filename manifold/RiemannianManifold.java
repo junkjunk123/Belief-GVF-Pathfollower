@@ -1,9 +1,11 @@
 package manifold;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import manifold.endomorphism.Endomorphism;
+import mathematics.DifferentiableScalarFunction;
 
-public interface RiemannianManifold<P extends ManifoldPoint<P>, V extends TangentVector<P, V>, M extends BilinearForm<V>> {
+import java.util.function.BiFunction;
+
+public interface RiemannianManifold<P extends ManifoldPoint<P>, V extends TangentVector<P, V>, M extends Endomorphism<V>> {
     BiFunction<V, V, Double> metric(P point);
 
     default double innerProduct(V vectorOne, V vectorTwo) {
@@ -22,7 +24,7 @@ public interface RiemannianManifold<P extends ManifoldPoint<P>, V extends Tangen
 
     P exp(P point, V vector);
     V log(P start, P end);
-    V gradient(P point, Function<P, Double> function);
+    V gradient(P point, DifferentiableScalarFunction<P> function);
     V parallelTransport(P start, P end, V vector);
 
     default double quadraticForm(V vectorOne, M matrix, V vectorTwo) {
@@ -32,5 +34,11 @@ public interface RiemannianManifold<P extends ManifoldPoint<P>, V extends Tangen
 
     default double quadraticForm(V vector, M matrix) {
         return quadraticForm(vector, matrix, vector);
+    }
+
+    default V normalize(V vector) {
+        double mag = norm(vector);
+        if (mag < 1e-8) throw new IllegalArgumentException("Can't normalize zero vector");
+        return vector.scale(1 / mag);
     }
 }

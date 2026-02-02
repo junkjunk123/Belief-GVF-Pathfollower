@@ -1,24 +1,25 @@
 package belief;
 
 import manifold.*;
+import manifold.endomorphism.Endomorphism;
 
 import java.util.function.BiFunction;
 
 public record BeliefVector<Pose extends ManifoldPoint<Pose>,
         Twist extends TangentVector<Pose, Twist>,
-        Workspace extends RiemannianManifold<Pose, Twist, BilinearForm<Twist>>>
+        Workspace extends RiemannianManifold<Pose, Twist, Endomorphism<Twist>>>
         (Belief<Pose, Twist, Workspace> belief,
          ProductManifold.ProductTangentVector<Pose, Twist, Pose, Twist> deltaMu,
-         BilinearForm<ProductManifold.ProductTangentVector<Pose, Twist, Pose, Twist>> deltaSigma,
+         ProductManifold.ProductEndomorphism<Pose, Twist, Pose, Twist> deltaSigma,
          Workspace workspace,
-         ProductManifold<Pose, Twist, BilinearForm<Twist>, Pose, Twist, BilinearForm<Twist>, Workspace, Workspace> manifold)
+         ProductManifold<Pose, Twist, Endomorphism<Twist>, Pose, Twist, Endomorphism<Twist>, Workspace, Workspace> manifold)
         implements TangentVector<Belief<Pose, Twist, Workspace>,
         BeliefVector<Pose, Twist, Workspace>>, BiFunction<Pose, Twist, Double> {
 
     public BeliefVector(
             Belief<Pose, Twist, Workspace> belief,
             ProductManifold.ProductTangentVector<Pose, Twist, Pose, Twist> deltaMu,
-            BilinearForm<ProductManifold.ProductTangentVector<Pose, Twist, Pose, Twist>> deltaSigma,
+            ProductManifold.ProductEndomorphism<Pose, Twist, Pose, Twist> deltaSigma,
             Workspace workspace
     ) {
         this(belief, deltaMu, deltaSigma, workspace, ProductManifold.of(workspace, workspace));
@@ -50,7 +51,7 @@ public record BeliefVector<Pose extends ManifoldPoint<Pose>,
     }
 
     @Override
-    public BilinearForm<BeliefVector<Pose, Twist, Workspace>> tensorProduct(BeliefVector<Pose, Twist, Workspace> other) {
+    public Endomorphism<BeliefVector<Pose, Twist, Workspace>> tensorProduct(BeliefVector<Pose, Twist, Workspace> other) {
         throw new UnsupportedOperationException("Tensor product not implemented for BeliefVector.");
     }
 

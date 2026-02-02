@@ -1,7 +1,7 @@
 package solver;
 
 import manifold.ManifoldPoint;
-import manifold.BilinearForm;
+import manifold.endomorphism.Endomorphism;
 import manifold.RiemannianManifold;
 import manifold.TangentVector;
 
@@ -14,7 +14,7 @@ public abstract class Workspace implements RiemannianManifold<Workspace.Pose, Wo
 
     }
 
-    public abstract static class Matrix implements BilinearForm<Twist> {
+    public abstract static class Matrix implements Endomorphism<Twist> {
 
     }
 }

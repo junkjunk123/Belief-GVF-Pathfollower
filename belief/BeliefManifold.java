@@ -1,17 +1,18 @@
 package belief;
 
 import manifold.*;
+import manifold.endomorphism.Endomorphism;
+import mathematics.DifferentiableScalarFunction;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class BeliefManifold<Pose extends ManifoldPoint<Pose>, Twist extends TangentVector<Pose, Twist>,
-        Workspace extends RiemannianManifold<Pose, Twist, BilinearForm<Twist>>>
+        Workspace extends RiemannianManifold<Pose, Twist, Endomorphism<Twist>>>
         implements RiemannianManifold<Belief<Pose, Twist, Workspace>, BeliefVector<Pose, Twist, Workspace>,
-        BilinearForm<BeliefVector<Pose, Twist, Workspace>>> {
+        Endomorphism<BeliefVector<Pose, Twist, Workspace>>> {
 
     private final Workspace workspace;
-    private final ProductManifold<Pose, Twist, BilinearForm<Twist>, Pose, Twist, BilinearForm<Twist>, Workspace, Workspace> manifold;
+    private final ProductManifold<Pose, Twist, Endomorphism<Twist>, Pose, Twist, Endomorphism<Twist>, Workspace, Workspace> manifold;
 
     public BeliefManifold(Workspace workspace) {
         this.workspace = workspace;
@@ -60,7 +61,7 @@ public class BeliefManifold<Pose extends ManifoldPoint<Pose>, Twist extends Tang
     }
 
     @Override
-    public BeliefVector<Pose, Twist, Workspace> gradient(Belief<Pose, Twist, Workspace> point, Function<Belief<Pose, Twist, Workspace>, Double> function) {
+    public BeliefVector<Pose, Twist, Workspace> gradient(Belief<Pose, Twist, Workspace> point, DifferentiableScalarFunction<Belief<Pose, Twist, Workspace>> function) {
         throw new UnsupportedOperationException("Gradient not implemented for BeliefManifold.");
     }
 

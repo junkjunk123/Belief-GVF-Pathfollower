@@ -1,23 +1,24 @@
 package manifold;
 
+import manifold.endomorphism.Endomorphism;
+import mathematics.DifferentiableScalarFunction;
 import util.Pair;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class ProductManifold<
         M1P extends ManifoldPoint<M1P>,
         M1V extends TangentVector<M1P, M1V>,
-        M1M extends BilinearForm<M1V>,
+        M1M extends Endomorphism<M1V>,
         M2P extends ManifoldPoint<M2P>,
         M2V extends TangentVector<M2P, M2V>,
-        M2M extends BilinearForm<M2V>,
+        M2M extends Endomorphism<M2V>,
         M1 extends RiemannianManifold<M1P, M1V, M1M>,
         M2 extends RiemannianManifold<M2P, M2V, M2M>>
         implements RiemannianManifold<
         ProductManifold.ProductPoint<M1P, M2P>,
         ProductManifold.ProductTangentVector<M1P, M1V, M2P, M2V>,
-        BilinearForm<ProductManifold.ProductTangentVector<M1P, M1V, M2P, M2V>>> {
+        Endomorphism<ProductManifold.ProductTangentVector<M1P, M1V, M2P, M2V>>> {
 
     public final M1 firstManifold;
     public final M2 secondManifold;
@@ -30,10 +31,10 @@ public class ProductManifold<
     public static <
             M1P extends ManifoldPoint<M1P>,
             M1V extends TangentVector<M1P, M1V>,
-            M1M extends BilinearForm<M1V>,
+            M1M extends Endomorphism<M1V>,
             M2P extends ManifoldPoint<M2P>,
             M2V extends TangentVector<M2P, M2V>,
-            M2M extends BilinearForm<M2V>,
+            M2M extends Endomorphism<M2V>,
             M1 extends RiemannianManifold<M1P, M1V, M1M>,
             M2 extends RiemannianManifold<M2P, M2V, M2M>>
     ProductManifold<M1P, M1V, M1M, M2P, M2V, M2M, M1, M2> of(M1 firstManifold, M2 secondManifold) {
@@ -86,12 +87,12 @@ public class ProductManifold<
     }
 
     @Override
-    public ProductTangentVector<M1P, M1V, M2P, M2V> gradient(ProductPoint<M1P, M2P> point, Function<ProductPoint<M1P, M2P>, Double> function) {
-        Function<M1P, Double> f1 =
-                p1 -> function.apply(new ProductPoint<>(p1, point.points.two()));
+    public ProductTangentVector<M1P, M1V, M2P, M2V> gradient(ProductPoint<M1P, M2P> point, DifferentiableScalarFunction<ProductPoint<M1P, M2P>> function) {
+        DifferentiableScalarFunction<M1P> f1 =
+                p1 -> function.evaluate(new ProductPoint<>(p1, point.points.two()));
 
-        Function<M2P, Double> f2 =
-                p2 -> function.apply(new ProductPoint<>(point.points.one(), p2));
+        DifferentiableScalarFunction<M2P> f2 =
+                p2 -> function.evaluate(new ProductPoint<>(point.points.one(), p2));
 
         M1V g1 = firstManifold.gradient(point.points.one(), f1);
         M2V g2 = secondManifold.gradient(point.points.two(), f2);
@@ -166,8 +167,70 @@ public class ProductManifold<
         }
 
         @Override
-        public BilinearForm<ProductTangentVector<M1P, M1V, M2P, M2V>> tensorProduct(ProductTangentVector<M1P, M1V, M2P, M2V> other) {
-            return null;
+        public Endomorphism<ProductTangentVector<M1P, M1V, M2P, M2V>> tensorProduct(ProductTangentVector<M1P, M1V, M2P, M2V> other) {
+            return new ProductEndomorphism<>(vectors.one().tensorProduct(other.vectors.one()),
+                    vectors.two().tensorProduct(other.vectors.two()));
+        }
+    }
+
+    public static class ProductEndomorphism<M1P extends ManifoldPoint<M1P>,
+            M1V extends TangentVector<M1P, M1V>,
+            M2P extends ManifoldPoint<M2P>,
+            M2V extends TangentVector<M2P, M2V>> implements Endomorphism<ProductTangentVector<M1P, M1V, M2P, M2V>> {
+        public final Endomorphism<M1V> one;
+        public final Endomorphism<M2V> two;
+
+        public ProductEndomorphism(Endomorphism<M1V> one, Endomorphism<M2V> two) {
+            this.one = one;
+            this.two = two;
+        }
+
+        @Override
+        public double determinant() {
+            return one.determinant() * two.determinant();
+        }
+
+        @Override
+        public ProductEndomorphism<M1P, M1V, M2P, M2V> inverse() {
+            return new ProductEndomorphism<>(one.inverse(), two.inverse());
+        }
+
+        @Override
+        public ProductTangentVector<M1P, M1V, M2P, M2V> multiply(ProductTangentVector<M1P, M1V, M2P, M2V> vector) {
+            return new ProductTangentVector<>(one.multiply(vector.vectors.one()), two.multiply(vector.vectors.two()));
+        }
+
+        @Override
+        public ProductEndomorphism<M1P, M1V, M2P, M2V> multiply(Endomorphism<ProductTangentVector<M1P, M1V, M2P, M2V>> other) {
+            ProductEndomorphism<M1P,M1V,M2P,M2V> o = (ProductEndomorphism<M1P,M1V,M2P,M2V>) other;
+            return new ProductEndomorphism<>(
+                    one.multiply(o.one),
+                    two.multiply(o.two)
+            );
+        }
+
+        @Override
+        public ProductEndomorphism<M1P, M1V, M2P, M2V> add(Endomorphism<ProductTangentVector<M1P, M1V, M2P, M2V>> other) {
+            ProductEndomorphism<M1P,M1V,M2P,M2V> o = (ProductEndomorphism<M1P,M1V,M2P,M2V>) other;
+            return new ProductEndomorphism<>(
+                    one.add(o.one),
+                    two.add(o.two)
+            );
+        }
+
+        @Override
+        public ProductEndomorphism<M1P, M1V, M2P, M2V> scale(double alpha) {
+            return new ProductEndomorphism<>(one.scale(alpha), two.scale(alpha));
+        }
+
+        @Override
+        public ProductEndomorphism<M1P, M1V, M2P, M2V> transpose() {
+            return new ProductEndomorphism<>(one.transpose(), two.transpose());
+        }
+
+        @Override
+        public double trace() {
+            return one.trace() + two.trace();
         }
     }
 
