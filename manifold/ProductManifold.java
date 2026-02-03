@@ -1,13 +1,14 @@
 package manifold;
 
+import gvf.IGVF;
+import gvf.VectorField;
 import manifold.endomorphism.Endomorphism;
 import mathematics.DifferentiableScalarFunction;
 import util.Pair;
 
 import java.util.function.BiFunction;
 
-public class ProductManifold<
-        M1P extends ManifoldPoint<M1P>,
+public class ProductManifold<M1P extends ManifoldPoint<M1P>,
         M1V extends TangentVector<M1P, M1V>,
         M1M extends Endomorphism<M1V>,
         M2P extends ManifoldPoint<M2P>,
@@ -116,6 +117,27 @@ public class ProductManifold<
                         vector.vectors.two()
                 )
         );
+    }
+
+    @Override
+    public Endomorphism<ProductTangentVector<M1P, M1V, M2P, M2V>>
+        covariantDerivative(ProductPoint<M1P, M2P> point, VectorField<ProductPoint<M1P, M2P>,
+            ProductTangentVector<M1P, M1V, M2P, M2V>, Endomorphism<ProductTangentVector<M1P, M1V, M2P, M2V>>,
+            ? extends RiemannianManifold<ProductPoint<M1P, M2P>, ProductTangentVector<M1P, M1V, M2P, M2V>,
+            Endomorphism<ProductTangentVector<M1P, M1V, M2P, M2V>>>> vectorField) {
+        M1M cd1 = firstManifold.covariantDerivative(
+                point.points.one(),
+                (p1) -> vectorField.evaluate(
+                        new ProductPoint<>(p1, point.points.two())
+                ).vectors.one()
+        );
+        M2M cd2 = secondManifold.covariantDerivative(
+                        point.points.two(),
+                        (p2) -> vectorField.evaluate(
+                                new ProductPoint<>(point.points.one(), p2)
+                        ).vectors.two()
+                );
+        return new ProductEndomorphism<>(cd1, cd2);
     }
 
     public static class ProductPoint<M1P extends ManifoldPoint<M1P>, M2P extends ManifoldPoint<M2P>>

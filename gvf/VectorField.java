@@ -5,12 +5,10 @@ import manifold.RiemannianManifold;
 import manifold.TangentVector;
 import manifold.endomorphism.Endomorphism;
 
-import java.util.function.Function;
-
-public interface IGVF<
+public interface VectorField<
         P extends ManifoldPoint<P>,
         V extends TangentVector<P, V>,
         M extends Endomorphism<V>,
-        Manifold extends RiemannianManifold<P, V, M>> extends VectorField <P, V, M, Manifold> {
-    M covariance();
+        Manifold extends RiemannianManifold<P, V, M>> {
+    V evaluate(P pose);
 }

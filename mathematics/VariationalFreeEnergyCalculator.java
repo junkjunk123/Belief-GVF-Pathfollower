@@ -24,7 +24,8 @@ public class VariationalFreeEnergyCalculator {
                                    Belief<Pose, Twist, Workspace> belief, Workspace workspace) {
         Twist innovation = path.evaluate(belief.muPose).subtract(belief.muTwist);
         double quadraticForm = workspace.quadraticForm(innovation, path.covariance());
-        double trace = path.covariance().multiply(belief.sigma.two).multiply(path.covariance()).trace();
+        Endomorphism<Twist> covariantDerivative = workspace.covariantDerivative(belief.muPose, path);
+        double trace = covariantDerivative.multiply(belief.sigma.two).multiply(covariantDerivative).trace();
         return quadraticForm + trace;
     }
 

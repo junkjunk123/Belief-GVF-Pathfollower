@@ -1,5 +1,7 @@
 package manifold;
 
+import gvf.IGVF;
+import gvf.VectorField;
 import manifold.endomorphism.Endomorphism;
 import mathematics.DifferentiableScalarFunction;
 
@@ -26,6 +28,11 @@ public interface RiemannianManifold<P extends ManifoldPoint<P>, V extends Tangen
     V log(P start, P end);
     V gradient(P point, DifferentiableScalarFunction<P> function);
     V parallelTransport(P start, P end, V vector);
+
+    /**
+     * Use the canonical Levi-Civita Connection here.
+     */
+    M covariantDerivative(P point, VectorField<P, V, M, ? extends RiemannianManifold<P, V, M>> vectorField);
 
     default double quadraticForm(V vectorOne, M matrix, V vectorTwo) {
         V intermediate = matrix.multiply(vectorTwo);

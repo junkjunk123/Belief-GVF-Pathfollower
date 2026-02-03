@@ -1,5 +1,7 @@
 package belief;
 
+import gvf.IGVF;
+import gvf.VectorField;
 import manifold.*;
 import manifold.endomorphism.Endomorphism;
 import mathematics.DifferentiableScalarFunction;
@@ -68,5 +70,17 @@ public class BeliefManifold<Pose extends ManifoldPoint<Pose>, Twist extends Tang
     @Override
     public BeliefVector<Pose, Twist, Workspace> parallelTransport(Belief<Pose, Twist, Workspace> start, Belief<Pose, Twist, Workspace> end, BeliefVector<Pose, Twist, Workspace> vector) {
         throw new UnsupportedOperationException("Parallel transport not implemented for BeliefManifold.");
+    }
+
+    @Override
+    public Endomorphism<BeliefVector<Pose, Twist, Workspace>>
+        covariantDerivative(Belief<Pose, Twist, Workspace> point,
+                            VectorField<Belief<Pose, Twist, Workspace>,
+                                    BeliefVector<Pose, Twist, Workspace>,
+                                    Endomorphism<BeliefVector<Pose, Twist, Workspace>>,
+                                    ? extends RiemannianManifold<Belief<Pose, Twist, Workspace>,
+                                            BeliefVector<Pose, Twist, Workspace>,
+                                            Endomorphism<BeliefVector<Pose, Twist, Workspace>>>> vectorField) {
+        throw new UnsupportedOperationException("Covariant derivative not implemented for BeliefManifold");
     }
 }

@@ -47,12 +47,6 @@ public abstract class GVFPath<Workspace extends RiemannianManifold<Pose, Vector,
     }
 
     @Override
-    public Vector covariantDerivative() {
-        //TODO: Fill out ts
-        return null;
-    }
-
-    @Override
     public Matrix covariance() {
         return modelCovariance;
     }
