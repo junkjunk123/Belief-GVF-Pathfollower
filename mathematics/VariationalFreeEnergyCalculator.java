@@ -20,18 +20,22 @@ public class VariationalFreeEnergyCalculator {
 
     public static <Pose extends ManifoldPoint<Pose>, Twist extends TangentVector<Pose, Twist>,
             Workspace extends RiemannianManifold<Pose, Twist, Endomorphism<Twist>>>
-        double calcTwistFreeEnergy(GVFPath<Workspace, Pose, Twist, Endomorphism<Twist>> path,
+        double calcTwistFreeEnergy(GVFPath<Workspace, Pose, Twist> path,
                                    Belief<Pose, Twist, Workspace> belief, Workspace workspace) {
         Twist innovation = path.evaluate(belief.muPose).subtract(belief.muTwist);
         double quadraticForm = workspace.quadraticForm(innovation, path.covariance());
         Endomorphism<Twist> covariantDerivative = workspace.covariantDerivative(belief.muPose, path);
-        double trace = covariantDerivative.multiply(belief.sigma.two).multiply(covariantDerivative).trace();
+        double trace = covariantDerivative
+                .multiply(belief.sigma.two)
+                .multiply(covariantDerivative)
+                .multiply(path.inverseCovariance())
+                .trace();
         return quadraticForm + trace;
     }
 
     public static <Pose extends ManifoldPoint<Pose>, Twist extends TangentVector<Pose, Twist>,
             Workspace extends RiemannianManifold<Pose, Twist, Endomorphism<Twist>>>
-        double calcVariationalFreeEnergy(GVFPath<Workspace, Pose, Twist, Endomorphism<Twist>> path,
+        double calcVariationalFreeEnergy(GVFPath<Workspace, Pose, Twist> path,
                                          Sensor<Pose, Twist> sensor, Belief<Pose, Twist, Workspace> belief,
                                          Workspace workspace) {
         return calcPoseFreeEnergy(sensor, belief, workspace) + calcTwistFreeEnergy(path, belief, workspace);

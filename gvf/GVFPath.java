@@ -8,17 +8,17 @@ import manifold.endomorphism.IdentityEndomorphism;
 import mathematics.DifferentiableScalarFunction;
 import util.Pair;
 
-public abstract class GVFPath<Workspace extends RiemannianManifold<Pose, Vector, Matrix>,
+public abstract class GVFPath<Workspace extends RiemannianManifold<Pose, Vector, Endomorphism<Vector>>,
         Pose extends ManifoldPoint<Pose>,
-        Vector extends TangentVector<Pose, Vector>,
-        Matrix extends Endomorphism<Vector>> implements IGVF<Pose, Vector, Matrix, Workspace> {
+        Vector extends TangentVector<Pose, Vector>>
+        implements IGVF<Pose, Vector, Workspace> {
     private final DifferentiableScalarFunction<Pose> signedDistanceToPath;
     private final Workspace workspace;
     private final Pair<Double, Double> gvfCoefficients;
-    private final Matrix modelCovariance;
+    private final Endomorphism<Vector> modelCovariance;
 
     public GVFPath(DifferentiableScalarFunction<Pose> signedDistanceToPath, Workspace workspace,
-                   Pair<Double, Double> gvfCoefficients, Matrix modelCovariance) {
+                   Pair<Double, Double> gvfCoefficients, Endomorphism<Vector> modelCovariance) {
         this.signedDistanceToPath = signedDistanceToPath;
         this.workspace = workspace;
         this.gvfCoefficients = gvfCoefficients;
@@ -47,7 +47,7 @@ public abstract class GVFPath<Workspace extends RiemannianManifold<Pose, Vector,
     }
 
     @Override
-    public Matrix covariance() {
+    public Endomorphism<Vector> covariance() {
         return modelCovariance;
     }
 }
