@@ -1,7 +1,7 @@
 package mathematics;
 
 import belief.Belief;
-import gvf.GVFPath;
+import gvf.IGVF;
 import manifold.ManifoldPoint;
 import manifold.RiemannianManifold;
 import manifold.TangentVector;
@@ -20,7 +20,7 @@ public class VariationalFreeEnergyCalculator {
 
     public static <Pose extends ManifoldPoint<Pose>, Twist extends TangentVector<Pose, Twist>,
             Workspace extends RiemannianManifold<Pose, Twist, Endomorphism<Twist>>>
-        double calcTwistFreeEnergy(GVFPath<Workspace, Pose, Twist> path,
+        double calcTwistFreeEnergy(IGVF<Pose, Twist, Workspace> path,
                                    Belief<Pose, Twist, Workspace> belief, Workspace workspace) {
         Twist innovation = path.evaluate(belief.muPose).subtract(belief.muTwist);
         double quadraticForm = workspace.quadraticForm(innovation, path.covariance());
@@ -35,7 +35,7 @@ public class VariationalFreeEnergyCalculator {
 
     public static <Pose extends ManifoldPoint<Pose>, Twist extends TangentVector<Pose, Twist>,
             Workspace extends RiemannianManifold<Pose, Twist, Endomorphism<Twist>>>
-        double calcVariationalFreeEnergy(GVFPath<Workspace, Pose, Twist> path,
+        double calcVariationalFreeEnergy(IGVF<Pose, Twist, Workspace> path,
                                          Sensor<Pose, Twist> sensor, Belief<Pose, Twist, Workspace> belief,
                                          Workspace workspace) {
         return calcPoseFreeEnergy(sensor, belief, workspace) + calcTwistFreeEnergy(path, belief, workspace);

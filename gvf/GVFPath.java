@@ -8,9 +8,9 @@ import manifold.endomorphism.IdentityEndomorphism;
 import mathematics.DifferentiableScalarFunction;
 import util.Pair;
 
-public abstract class GVFPath<Workspace extends RiemannianManifold<Pose, Vector, Endomorphism<Vector>>,
-        Pose extends ManifoldPoint<Pose>,
-        Vector extends TangentVector<Pose, Vector>>
+public abstract class GVFPath<Pose extends ManifoldPoint<Pose>,
+        Vector extends TangentVector<Pose, Vector>,
+        Workspace extends RiemannianManifold<Pose, Vector, Endomorphism<Vector>>>
         implements IGVF<Pose, Vector, Workspace> {
     private final DifferentiableScalarFunction<Pose> signedDistanceToPath;
     private final Workspace workspace;

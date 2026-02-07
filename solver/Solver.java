@@ -1,7 +1,7 @@
 package solver;
 
 import belief.Belief;
-import gvf.GVFPath;
+import gvf.IGVF;
 import manifold.ManifoldPoint;
 import manifold.ProductManifold;
 import manifold.endomorphism.Endomorphism;
@@ -14,12 +14,12 @@ public class Solver<Workspace extends RiemannianManifold<Pose, Twist, Endomorphi
         Pose extends ManifoldPoint<Pose>,
         Twist extends TangentVector<Pose, Twist>> {
     private final Workspace workspace;
-    private final GVFPath<Workspace, Pose, Twist> path;
+    private final IGVF<Pose, Twist, Workspace> path;
     private final Sensor<Pose, Twist> sensor;
     private Belief<Pose, Twist, Workspace> currentState;
     private final Timer timer = new Timer();
 
-    public Solver(Workspace workspace, GVFPath<Workspace, Pose, Twist> path, Sensor<Pose, Twist> sensor) {
+    public Solver(Workspace workspace, IGVF<Pose, Twist, Workspace> path, Sensor<Pose, Twist> sensor) {
         this.path = path;
         this.sensor = sensor;
         this.workspace = workspace;
